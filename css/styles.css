@@ -46,18 +46,15 @@ button {
     justify-content: center;
 }
 
-.modal-header {
-    margin-bottom: 25px;
-}
-
 .modal-header h3 {
     font-weight: normal;
     font-size: 1em;
     margin: 0;
 }
 
-.modal-body {
-    margin-bottom: 25px;
+.modal-body,
+.modal-footer {
+    margin-top: 25px;
 }
 
 .modal-footer .submit-btn + .submit-btn {
@@ -112,6 +109,10 @@ button {
 
 .input-wrapper.invalid .error {
     display: block;
+}
+
+.user-info-wrapper {
+    margin-bottom: 25px;
 }
 
 .user-info-row p {
