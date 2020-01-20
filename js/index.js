@@ -44,20 +44,22 @@ function onDocumentReady() {
         vacancy: 'vacancy'
     };
 
-    var requiredErrorText = 'This field is required';
-    var onlyLettersErrorText = 'Can contain letters only';
-    var emailErrorText = 'Incorrect e-mail';
-    var passwordErrorText = 'Required at least one number (0-9), uppercase and lowercase letters (a-Z) and at least one special character (!@#$%^&*~)';
-    var equalPasswordErrorText = 'Must be equal to password';
+    var validationErrors = {
+        required: 'This field is required',
+        onlyLetters: 'Can contain letters only',
+        email: 'Incorrect e-mail',
+        password: 'Required at least one number (0-9), uppercase and lowercase letters (a-Z) and at least one special character (!@#$%^&*~)',
+        equalPassword: 'Must be equal to password'
+    };
 
     userFormTmpl = document.getElementById('user-form-template');
     specFormTmpl = document.getElementById('spec-form-template');
     userInfoTmpl = document.getElementById('user-info-template');
     regardsTmpl = document.getElementById('regards-template');
 
-    // initUserForm();
+    initUserForm();
 
-    initSpecForm();
+    // initSpecForm();
 
 // init functions
     function initUserForm() {
@@ -65,11 +67,13 @@ function onDocumentReady() {
 
         if (userFormTmpl) {
             appendTemplateToElement(userFormTmpl, 'body');
+            animateLoadedElement('user-form-modal', 200);
             addEventListenerById('click', 'user-form-submit-btn', onUserFormSubmit);
             addEventListenerByClassName('keydown', 'input', onInputKeyDown);
 
             if (editMode) {
-                userInfo = getDataFromLocalStorage('userInfo');
+                userInfo = getUserInfo();
+
                 if (userInfo) {
                     fillUserForm(userInfo);
                 }
@@ -82,11 +86,13 @@ function onDocumentReady() {
 
         if (specFormTmpl) {
             appendTemplateToElement(specFormTmpl, 'body');
+            animateLoadedElement('spec-form-modal', 200);
             addEventListenerById('click', 'spec-form-submit-btn', onSpecFormSubmit);
             addEventListenerByClassName('change', 'input', onSpecFromSelectChange);
 
             if (editMode) {
-                userInfo = getDataFromLocalStorage('userInfo');
+                userInfo = getUserInfo();
+
                 if (userInfo) {
                     fillSpecForm(userInfo);
                 } else {
@@ -101,6 +107,7 @@ function onDocumentReady() {
     function initUserInfo() {
         if (userInfoTmpl) {
             appendTemplateToElement(userInfoTmpl, 'body');
+            animateLoadedElement('user-info-modal', 200);
             addEventListenerById('click', 'send-btn', onUserInfoSend);
             addEventListenerById('click', 'edit-btn', onUserInfoEdit);
             fillUserInfo(getUserInfo());
@@ -110,6 +117,7 @@ function onDocumentReady() {
     function initRegards() {
         if (regardsTmpl) {
             appendTemplateToElement(regardsTmpl, 'body');
+            animateLoadedElement('regards-modal', 200);
         }
     }
 
@@ -135,7 +143,6 @@ function onDocumentReady() {
         resetFormErrors('spec-form');
 
         if (errors.length) {
-            console.log(errors);
             fillFormErrors('spec-form', errors);
         } else {
             specFormData = data;
@@ -146,7 +153,7 @@ function onDocumentReady() {
 
     function onUserInfoSend() {
         editMode = false;
-        saveDataToLocalStorage('user');
+        setDataToLocalStorage('userInfo', getUserInfo());
         unloadUserInfo();
         initRegards();
     }
@@ -186,62 +193,61 @@ function onDocumentReady() {
         if (!data.firstName) {
             errors.push({
                 field: 'firstName',
-                error: requiredErrorText
+                error: validationErrors.required
             });
         } else if (!testOnlyLetters(data.firstName)) {
             errors.push({
                 field: 'firstName',
-                error: onlyLettersErrorText
+                error: validationErrors.onlyLetters
             });
         }
 
         if (!data.lastName) {
             errors.push({
                 field: 'lastName',
-                error: requiredErrorText
+                error: validationErrors.required
             });
         } else if (!testOnlyLetters(data.lastName)) {
             errors.push({
                 field: 'lastName',
-                error: onlyLettersErrorText
+                error: validationErrors.onlyLetters
             });
         }
 
         if (!data.login) {
             errors.push({
                 field: 'login',
-                error: requiredErrorText
+                error: validationErrors.required
             });
         }
 
         if (!data.email) {
             errors.push({
                 field: 'email',
-                error: requiredErrorText
+                error: validationErrors.required
             });
         } else if (!testEmail(data.email)) {
             errors.push({
                 field: 'email',
-                error: emailErrorText
+                error: validationErrors.email
             });
         }
 
         if (!data.password) {
             errors.push({
                 field: 'password',
-                error: requiredErrorText
+                error: validationErrors.required
             });
         } else if (!testPassword(data.password)) {
-            console.log(data.password);
             errors.push({
                 field: 'password',
-                error: passwordErrorText
+                error: validationErrors.password
             });
         } else {
             if (data.password !== data.passwordConfirm) {
                 errors.push({
                     field: 'passwordConfirm',
-                    error: equalPasswordErrorText
+                    error: validationErrors.equalPassword
                 });
             }
         }
@@ -255,14 +261,14 @@ function onDocumentReady() {
         if (!data.department) {
             errors.push({
                 field: 'department',
-                error: requiredErrorText
+                error: validationErrors.required
             });
         }
 
         if (!data.vacancy) {
             errors.push({
                 field: 'vacancy',
-                error: requiredErrorText
+                error: validationErrors.required
             });
         }
 
@@ -352,13 +358,15 @@ function onDocumentReady() {
 
     function fillSpecForm(userInfo) {
         var specForm = document.getElementById('spec-form');
+        var vacancySelect = document.getElementById('vacancy');
 
         fillDepartmentsOptions();
         fillVacanciesOptions(userInfo.department);
 
         if (specForm) {
             document.getElementById('department').value = userInfo.department;
-            document.getElementById('vacancy').value = userInfo.vacancy;
+            vacancySelect.value = userInfo.vacancy;
+            vacancySelect.removeAttribute('disabled');
         }
     }
 
@@ -369,9 +377,9 @@ function onDocumentReady() {
             document.getElementById('user-info-name').textContent = userInfo.firstName + ' ' + userInfo.lastName;
             document.getElementById('user-info-login').textContent = userInfo.login;
             document.getElementById('user-info-email').textContent = userInfo.email;
-            document.getElementById('user-info-company').value = userInfo.company;
-            document.getElementById('user-info-department').value = userInfo.department;
-            document.getElementById('user-info-vacancy').value = userInfo.vacancy;
+            document.getElementById('user-info-company').textContent = userInfo.company;
+            document.getElementById('user-info-department').textContent = userInfo.department;
+            document.getElementById('user-info-vacancy').textContent = userInfo.vacancy;
         }
     }
 
@@ -420,19 +428,25 @@ function onDocumentReady() {
     function unloadUserForm() {
         removeEventListenerById('click', 'user-form-submit-btn', onUserFormSubmit);
         removeEventListenerByClassName('keydown', 'input', onInputKeyDown);
-        removeElementById('user-form-modal');
+        animateUnloadedElement('user-form-modal', 200, function () {
+            removeElementById('user-form-modal');
+        });
     }
 
     function unloadSpecForm() {
         removeEventListenerById('click', 'spec-form-submit-btn', onSpecFormSubmit);
         removeEventListenerByClassName('change', 'input', onSpecFromSelectChange);
-        removeElementById('spec-form-modal');
+        animateUnloadedElement('spec-form-modal', 200, function () {
+            removeElementById('spec-form-modal');
+        });
     }
 
     function unloadUserInfo() {
         removeEventListenerById('click', 'send-btn', onUserInfoSend);
         removeEventListenerById('click', 'edit-btn', onUserInfoEdit);
-        removeElementById('user-info-modal');
+        animateUnloadedElement('user-info-modal', 200, function () {
+            removeElementById('user-info-modal');
+        });
     }
 
 
@@ -474,12 +488,8 @@ function onDocumentReady() {
 
 
 // local storage functions
-    function saveDataToLocalStorage(key, data) {
+    function setDataToLocalStorage(key, data) {
         localStorage.setItem(key, JSON.stringify(data));
-    }
-
-    function getDataFromLocalStorage(key) {
-        return JSON.parse(localStorage.getItem(key));
     }
 
 
@@ -491,6 +501,21 @@ function onDocumentReady() {
     function removeElementById(id) {
         var element = document.getElementById(id);
         element.parentElement.removeChild(element);
+    }
+
+    function animateLoadedElement(id, timeout) {
+        setTimeout(function () {
+            document.getElementById(id).classList.remove('unloaded');
+        }, timeout);
+    }
+
+    function animateUnloadedElement(id, timeout, callback) {
+        document.getElementById(id).classList.add('unloaded');
+        setTimeout(function () {
+            if (callback) {
+                callback.call();
+            }
+        }, timeout);
     }
 
     function addEventListenerById(e, id, handler) {
