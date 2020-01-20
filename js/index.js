@@ -306,7 +306,7 @@ function onDocumentReady() {
                 var errorElement = document.createElement('p');
                 errorElement.classList.add('error');
                 errorElement.textContent = error.error;
-                inputWrapper.append(errorElement);
+                inputWrapper.appendChild(errorElement);
                 inputWrapper.classList.add('invalid');
             });
         }
@@ -419,7 +419,7 @@ function onDocumentReady() {
             option = document.createElement('option');
             option.value = value;
             option.textContent = text;
-            select.append(option);
+            select.appendChild(option);
         }
     }
 
